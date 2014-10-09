@@ -20,7 +20,6 @@ type MusicBrainzSearcher struct {
 }
 
 func (mbSearcher *MusicBrainzSearcher) Search() string {
-	//query := "http://musicbrainz.org/ws/2/artist?query=beatles&fmt=json"
 	query := "http://musicbrainz.org/ws/2/artist?query=" + mbSearcher.Criteria.ArtistName + "&fmt=json"
 	fmt.Println(query)
 	resp, err := http.Get(query)
