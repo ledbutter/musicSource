@@ -1,9 +1,11 @@
 package musicSource
 
 import (
-	"fmt"
+	"encoding/json"
+	//	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type SearchCriteria struct {
@@ -19,9 +21,16 @@ type MusicBrainzSearcher struct {
 	Criteria SearchCriteria
 }
 
+type Artist struct {
+	Id   string
+	Name string
+}
+
 func (mbSearcher *MusicBrainzSearcher) Search() string {
-	query := "http://musicbrainz.org/ws/2/artist?query=" + mbSearcher.Criteria.ArtistName + "&fmt=json"
-	fmt.Println(query)
+	val := url.Values{}
+	val.Add("query", mbSearcher.Criteria.ArtistName)
+	val.Add("fmt", "json")
+	query := "http://musicbrainz.org/ws/2/artist?" + val.Encode()
 	resp, err := http.Get(query)
 	if err != nil {
 		return "Uh Oh, Get()"
@@ -31,6 +40,17 @@ func (mbSearcher *MusicBrainzSearcher) Search() string {
 	if err != nil {
 		return "Uh oh, ReadAllBytes()"
 	}
-	content := string(body)
-	return content
+
+	var topLevel interface{}
+	err = json.Unmarshal(body, &topLevel)
+	if err != nil {
+		return "Uh oh, Unmarshal"
+	} else {
+		m := topLevel.(map[string]interface{}) //this seems really hacky/brittle, there has to be a better way?
+		result := (m["artists"].([]interface{})[0]).(map[string]interface{})
+		artist := new(Artist)
+		artist.Id = result["id"].(string)
+		artist.Name = result["name"].(string)
+		return artist.Name
+	}
 }
