@@ -41,16 +41,12 @@ func (mbSearcher *MusicBrainzSearcher) Search() string {
 		return "Uh oh, ReadAllBytes()"
 	}
 
-	var topLevel interface{}
-	err = json.Unmarshal(body, &topLevel)
+	var result struct {
+		Artists [1]Artist
+	}
+	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return "Uh oh, Unmarshal"
-	} else {
-		m := topLevel.(map[string]interface{}) //this seems really hacky/brittle, there has to be a better way?
-		result := (m["artists"].([]interface{})[0]).(map[string]interface{})
-		artist := new(Artist)
-		artist.Id = result["id"].(string)
-		artist.Name = result["name"].(string)
-		return artist.Name
 	}
+	return result.Artists[0].Name
 }
